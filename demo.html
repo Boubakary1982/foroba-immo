@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<title>Foroba Immo — Démo MVP</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#14555E" />
+<style>
+  :root { --teal: #14555E; --terracotta: #D98548; --dark: #1F2A2C; --gray: #5C6B6D; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; background: #F7F7F5; color: var(--dark); }
+  .topbar { background: var(--teal); color: #fff; padding: 18px 20px 14px; position: sticky; top: 0; }
+  .topbar .eyebrow { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 2px; color: #F2D9BE; margin-bottom: 2px; }
+  .topbar .title { font-family: Georgia, serif; font-size: 20px; }
+  .tabs { display: flex; background: #fff; border-bottom: 1px solid #E3E3E3; }
+  .tab { flex: 1; background: none; border: none; padding: 12px 4px; font-size: 13px; font-weight: 500; color: var(--gray); cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab.active { color: var(--teal); font-weight: 700; border-bottom-color: var(--teal); }
+  .screen { padding: 18px; }
+  .btn-primary { width: 100%; font-size: 15px; font-weight: 600; background: var(--teal); color: #fff; border: none; border-radius: 9px; padding: 14px; cursor: pointer; margin-bottom: 16px; }
+  .card { background: #fff; border: 1px solid #E3E3E3; border-radius: 10px; padding: 15px; margin-bottom: 10px; }
+  .card .row { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 6px; }
+  .card .name { font-family: Georgia, serif; font-size: 16px; }
+  .card .sub { font-size: 13px; color: var(--gray); }
+  .card .price { font-family: monospace; font-size: 15px; color: var(--teal); font-weight: 700; margin-top: 6px; }
+  .badge { font-size: 11px; font-weight: 600; color: #fff; border-radius: 20px; padding: 3px 10px; white-space: nowrap; }
+  .field { margin-bottom: 14px; }
+  .field label { display: block; font-size: 12.5px; color: var(--gray); font-weight: 600; margin-bottom: 5px; }
+  .field input, .field select { width: 100%; padding: 11px 12px; border-radius: 8px; border: 1px solid #D8D8D8; font-size: 14.5px; }
+  .footer-note { padding: 10px; text-align: center; font-size: 10.5px; color: var(--gray); border-top: 1px solid #E3E3E3; background: #fff; }
+</style>
+</head>
+<body>
+<div class="topbar">
+  <div class="eyebrow">FOROBA IMMO — DÉMO PILOTE</div>
+  <div class="title" id="screenTitle">Gestion des biens</div>
+</div>
+<div class="tabs">
+  <button class="tab active" id="tabBiens" onclick="setTab('biens')">Gestion des biens</button>
+  <button class="tab" id="tabClients" onclick="setTab('clients')">CRM — Clients</button>
+</div>
+<div class="screen" id="screen"></div>
+<div class="footer-note">Démo pilote — données locales à cet appareil, non sauvegardées</div>
+
+<script>
+var tab = "biens";
+var addingBien = false;
+var addingClient = false;
+
+var biens = [
+  { type: "Villa", quartier: "Sotuba", transaction: "Vente", prix: "85 000 000", surface: "300", statut: "Disponible" },
+  { type: "Appartement", quartier: "ACI 2000", transaction: "Location", prix: "380 000", surface: "95", statut: "Disponible" }
+];
+var clients = [
+  { nom: "Aminata Diarra", tel: "+223 76 00 00 00", recherche: "Location", budget: "300 000 - 400 000", statut: "En négociation" },
+  { nom: "Boubacar Traoré", tel: "+223 65 00 00 00", recherche: "Achat", budget: "60-90M FCFA", statut: "Nouveau" }
+];
+
+var STATUT_COLOR = { "Disponible": "#14555E", "Réservé": "#D98548", "Vendu": "#5C6B6D", "Loué": "#5C6B6D", "Nouveau": "#D98548", "En négociation": "#14555E", "Conclu": "#5C6B6D" };
+
+function setTab(t) {
+  tab = t; addingBien = false; addingClient = false;
+  document.getElementById("tabBiens").className = "tab" + (t === "biens" ? " active" : "");
+  document.getElementById("tabClients").className = "tab" + (t === "clients" ? " active" : "");
+  document.getElementById("screenTitle").innerText = t === "biens" ? "Gestion des biens" : "CRM — Clients";
+  render();
+}
+function badge(text) {
+  return '<span class="badge" style="background:' + (STATUT_COLOR[text] || "#5C6B6D") + '">' + text + '</span>';
+}
+
+function showAddBien() { addingBien = true; render(); }
+function saveBien() {
+  var b = {
+    type: document.getElementById("b_type").value,
+    quartier: document.getElementById("b_quartier").value,
+    transaction: document.getElementById("b_transaction").value,
+    prix: document.getElementById("b_prix").value,
+    surface: document.getElementById("b_surface").value,
+    statut: document.getElementById("b_statut").value
+  };
+  if (!b.quartier) return;
+  biens.unshift(b);
+  addingBien = false;
+  render();
+}
+function showAddClient() { addingClient = true; render(); }
+function saveClient() {
+  var c = {
+    nom: document.getElementById("c_nom").value,
+    tel: document.getElementById("c_tel").value,
+    recherche: document.getElementById("c_recherche").value,
+    budget: document.getElementById("c_budget").value,
+    statut: document.getElementById("c_statut").value
+  };
+  if (!c.nom) return;
+  clients.unshift(c);
+  addingClient = false;
+  render();
+}
+
+function render() {
+  var el = document.getElementById("screen");
+  if (tab === "biens") {
+    if (addingBien) {
+      el.innerHTML =
+        '<div class="field"><label>Type de bien</label><select id="b_type"><option>Terrain</option><option>Maison</option><option selected>Villa</option><option>Appartement</option><option>Studio/Chambre</option><option>Local commercial</option></select></div>' +
+        '<div class="field"><label>Quartier</label><input id="b_quartier" placeholder="ex. Sotuba"></div>' +
+        '<div class="field"><label>Transaction</label><select id="b_transaction"><option>Vente</option><option>Location</option></select></div>' +
+        '<div class="field"><label>Prix (FCFA)</label><input id="b_prix" placeholder="ex. 85 000 000"></div>' +
+        '<div class="field"><label>Surface (m²)</label><input id="b_surface" placeholder="ex. 300"></div>' +
+        '<div class="field"><label>Statut</label><select id="b_statut"><option>Disponible</option><option>Réservé</option><option>Vendu</option><option>Loué</option></select></div>' +
+        '<button class="btn-primary" onclick="saveBien()">Enregistrer le bien</button>' +
+        '<button onclick="addingBien=false;render()" style="width:100%;background:none;border:none;color:var(--gray);padding:8px">Annuler</button>';
+      return;
+    }
+    el.innerHTML = '<button class="btn-primary" onclick="showAddBien()">+ Ajouter un bien</button>' +
+      biens.map(function(b) {
+        return '<div class="card"><div class="row"><div class="name">' + b.type + ' — ' + b.quartier + '</div>' + badge(b.statut) + '</div><div class="sub">' + b.transaction + ' · ' + b.surface + ' m²</div><div class="price">' + b.prix + ' FCFA</div></div>';
+      }).join("");
+  } else {
+    if (addingClient) {
+      el.innerHTML =
+        '<div class="field"><label>Nom du client</label><input id="c_nom" placeholder="ex. Aminata Diarra"></div>' +
+        '<div class="field"><label>Téléphone / WhatsApp</label><input id="c_tel" placeholder="+223 XX XX XX XX"></div>' +
+        '<div class="field"><label>Recherche</label><select id="c_recherche"><option>Location</option><option>Achat</option></select></div>' +
+        '<div class="field"><label>Budget</label><input id="c_budget" placeholder="ex. 300 000 - 400 000"></div>' +
+        '<div class="field"><label>Statut</label><select id="c_statut"><option>Nouveau</option><option>En négociation</option><option>Conclu</option></select></div>' +
+        '<button class="btn-primary" onclick="saveClient()">Enregistrer le client</button>' +
+        '<button onclick="addingClient=false;render()" style="width:100%;background:none;border:none;color:var(--gray);padding:8px">Annuler</button>';
+      return;
+    }
+    el.innerHTML = '<button class="btn-primary" onclick="showAddClient()">+ Ajouter un client</button>' +
+      clients.map(function(c) {
+        return '<div class="card"><div class="row"><div class="name">' + c.nom + '</div>' + badge(c.statut) + '</div><div class="sub">' + c.tel + '</div><div class="sub" style="margin-top:4px">' + c.recherche + ' · <span style="font-family:monospace;color:var(--teal);font-weight:700">' + c.budget + '</span></div></div>';
+      }).join("");
+  }
+}
+render();
+</script>
+</body>
+</html>
