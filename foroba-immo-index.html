@@ -1,0 +1,149 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8" />
+<title>Foroba Immo — La plateforme collaborative de l'immobilier malien</title>
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<meta name="theme-color" content="#14555E" />
+<style>
+  :root { --teal: #14555E; --terracotta: #D98548; --lt-terracotta: #FBF0E6; --lt-teal: #E7EEEE; --dark: #1F2A2C; --gray: #5C6B6D; }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: 'Segoe UI', Arial, sans-serif; color: var(--dark); background: #fff; }
+  section { padding: 56px 22px; }
+  .wrap { max-width: 720px; margin: 0 auto; }
+  .eyebrow { font-family: 'Courier New', monospace; font-size: 12px; letter-spacing: 2.5px; color: var(--terracotta); margin-bottom: 12px; text-transform: uppercase; }
+  .eyebrow.dark { color: #F2D9BE; }
+  h2 { font-family: Georgia, serif; font-size: 24px; margin-bottom: 18px; }
+  p.lead { font-size: 15px; color: var(--gray); line-height: 1.7; }
+  .card { background: #fff; border: 1px solid #E3E3E3; border-radius: 10px; padding: 20px; }
+  .btn { display: inline-flex; align-items: center; gap: 8px; font-size: 14.5px; font-weight: 600; border-radius: 6px; padding: 13px 22px; text-decoration: none; cursor: pointer; border: none; }
+  .btn-primary { background: var(--terracotta); color: #fff; }
+  .btn-outline { background: transparent; color: #fff; border: 1px solid rgba(255,255,255,0.5); }
+  .btn-outline.dark-text { color: var(--dark); border-color: var(--dark); }
+
+  .hero { background: var(--teal); color: #fff; text-align: center; padding: 60px 22px 70px; }
+  .hero .wrap { max-width: 640px; }
+  .logo { margin: 0 auto 22px; }
+  .hero h1 { font-family: Georgia, serif; font-size: clamp(28px, 6vw, 42px); line-height: 1.2; margin-bottom: 18px; font-weight: 700; }
+  .hero p { font-size: 15.5px; color: rgba(255,255,255,0.85); max-width: 480px; margin: 0 auto 30px; line-height: 1.6; }
+  .btnrow { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+
+  .modules { background: var(--lt-teal); }
+  .modgrid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; }
+  @media (max-width: 480px) { .modgrid { grid-template-columns: 1fr; } }
+  .modgrid .card h3 { font-family: Georgia, serif; font-size: 15px; margin-bottom: 12px; }
+  .modgrid .card.mvp h3 { color: var(--teal); }
+  .modgrid .card.roadmap { background: var(--lt-terracotta); border: none; }
+  .modgrid .card.roadmap h3 { color: var(--terracotta); }
+  .checkitem { display: flex; gap: 8px; font-size: 13px; margin-bottom: 10px; align-items: flex-start; }
+  .roadmapitem { font-size: 13px; margin-bottom: 10px; }
+
+  .whygrid { display: grid; gap: 12px; margin-top: 20px; }
+  .whyitem { display: flex; gap: 14px; align-items: flex-start; }
+  .whyitem h4 { font-family: Georgia, serif; font-size: 15px; margin-bottom: 4px; }
+  .whyitem p { font-size: 13px; color: var(--gray); line-height: 1.55; }
+
+  .pilote { background: var(--teal); color: #fff; text-align: center; }
+  .pilote p { color: rgba(255,255,255,0.85); margin-bottom: 26px; }
+
+  footer { text-align: center; padding: 56px 22px; }
+  footer .disclaimer { font-size: 13px; color: var(--gray); font-style: italic; margin-bottom: 20px; }
+  footer .contact { display: inline-block; text-align: left; }
+  footer .contact div { font-size: 13px; color: var(--gray); line-height: 1.8; }
+</style>
+</head>
+<body>
+
+<div class="hero">
+  <div class="wrap">
+    <svg class="logo" width="52" height="52" viewBox="0 0 100 100">
+      <rect x="14" y="44" width="72" height="14" rx="3" fill="#14555E"/>
+      <rect x="24" y="24" width="52" height="14" rx="3" fill="#D98548"/>
+      <rect x="34" y="64" width="32" height="14" rx="3" fill="#14555E"/>
+    </svg>
+    <div class="eyebrow dark">FOROBA IMMO</div>
+    <h1>La plateforme collaborative de l'immobilier malien</h1>
+    <p>Un seul outil pour gérer biens et clients — pensé pour les agences maliennes, sans favoriser aucune d'entre elles.</p>
+    <div class="btnrow">
+      <a class="btn btn-primary" href="https://wa.me/22382683541?text=Bonjour%2C%20je%20souhaite%20essayer%20la%20d%C3%A9mo%20Foroba%20Immo." target="_blank">Essayer la démo</a>
+      <a class="btn btn-outline" href="https://wa.me/22382683541?text=Bonjour%2C%20je%20souhaite%20devenir%20agence%20pilote%20Foroba%20Immo." target="_blank">Devenir agence pilote</a>
+    </div>
+  </div>
+</div>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Le constat</div>
+    <h2>Chaque agence travaille seule</h2>
+    <p class="lead">Annonces sur papier ou WhatsApp, aucune vérification partagée des locataires, aucun outil commun pour sécuriser un contrat ou authentifier un titre foncier. Résultat : plus de friction pour les agences, plus de méfiance pour les clients — en particulier pour la diaspora, qui ne peut rien vérifier à distance.</p>
+  </div>
+</section>
+
+<section class="modules">
+  <div class="wrap">
+    <div class="eyebrow">Les modules</div>
+    <h2>Ce qui existe, ce qui arrive</h2>
+    <div class="modgrid">
+      <div class="card mvp">
+        <h3>Disponible (MVP)</h3>
+        <div class="checkitem">✓&nbsp; Gestion des biens (annonces, mandats)</div>
+        <div class="checkitem">✓&nbsp; CRM (suivi clients &amp; prospects)</div>
+      </div>
+      <div class="card roadmap">
+        <h3>Feuille de route</h3>
+        <div class="roadmapitem">· FoncierScore™ — vérification du titre foncier</div>
+        <div class="roadmapitem">· IMMOScore™ — scoring locataire</div>
+        <div class="roadmapitem">· Contrats digitaux &amp; signature électronique</div>
+        <div class="roadmapitem">· Comptabilité locative</div>
+        <div class="roadmapitem">· Portail Diaspora</div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section>
+  <div class="wrap">
+    <div class="eyebrow">Pourquoi Foroba Immo</div>
+    <h2>Ce qui nous différencie</h2>
+    <div class="whygrid">
+      <div class="card whyitem">
+        <div>
+          <h4>Neutre et indépendant</h4>
+          <p>Conçu pour profiter à toutes les agences, sans favoriser un acteur du marché en particulier.</p>
+        </div>
+      </div>
+      <div class="card whyitem">
+        <div>
+          <h4>Expertise foncière unique</h4>
+          <p>Vérification des titres selon un protocole à 3 niveaux, un savoir-faire rare sur le marché malien.</p>
+        </div>
+      </div>
+      <div class="card whyitem">
+        <div>
+          <h4>Portail diaspora</h4>
+          <p>Une source de clients supplémentaire, déjà orientée vers l'achat et la location à distance.</p>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="pilote">
+  <div class="wrap">
+    <div class="eyebrow dark">Phase pilote</div>
+    <h2>3 à 5 agences, 3 mois, gratuit</h2>
+    <p>On ouvre l'accès aux deux modules MVP sans engagement, le temps de valider l'outil avec un petit groupe d'agences à Bamako avant le lancement officiel.</p>
+    <a class="btn btn-primary" href="https://wa.me/22382683541?text=Bonjour%2C%20je%20souhaite%20rejoindre%20la%20phase%20pilote%20Foroba%20Immo." target="_blank">Rejoindre la phase pilote</a>
+  </div>
+</section>
+
+<footer>
+  <p class="disclaimer">Foroba Immo est la marque commerciale d'IMMODigital Mali SA, développée par la même équipe que Terrimoine (terrimoine.com), le rapport trimestriel indépendant sur l'immobilier malien.</p>
+  <div class="card contact">
+    <div style="font-family:Georgia,serif;font-size:15px;color:var(--dark);margin-bottom:8px">Contact</div>
+    <div>WhatsApp +223 82 68 35 41<br>Hamdallaye, Bamako, Mali — Rue 93, Porte 119</div>
+  </div>
+</footer>
+
+</body>
+</html>
