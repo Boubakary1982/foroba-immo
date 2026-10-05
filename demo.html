@@ -45,15 +45,29 @@
 var tab = "biens";
 var addingBien = false;
 var addingClient = false;
+var editBienIndex = null;
+var editClientIndex = null;
 
 var biens = [
   { type: "Villa", quartier: "Sotuba", transaction: "Vente", prix: "85 000 000", surface: "300", statut: "Disponible" },
   { type: "Appartement", quartier: "ACI 2000", transaction: "Location", prix: "380 000", surface: "95", statut: "Disponible" }
 ];
 var clients = [
-  { nom: "Aminata Diarra", tel: "+223 76 00 00 00", recherche: "Location", budget: "300 000 - 400 000", statut: "En négociation" },
-  { nom: "Boubacar Traoré", tel: "+223 65 00 00 00", recherche: "Achat", budget: "60-90M FCFA", statut: "Nouveau" }
+  { nom: "Aminata Diarra", tel: "+223 76 00 00 00", recherche: "Location", budget: "300 000 - 400 000", statut: "En négociation", suivi: "" },
+  { nom: "Boubacar Traoré", tel: "+223 65 00 00 00", recherche: "Achat", budget: "60-90M FCFA", statut: "Nouveau", suivi: "" }
 ];
+
+function todayISO() {
+  var d = new Date();
+  return d.getFullYear() + "-" + String(d.getMonth()+1).padStart(2,"0") + "-" + String(d.getDate()).padStart(2,"0");
+}
+function suiviInfo(dateStr) {
+  if (!dateStr) return { label: "", color: "", urgent: false };
+  var today = todayISO();
+  if (dateStr < today) return { label: "⏰ En retard — " + dateStr, color: "#C0392B", urgent: true };
+  if (dateStr === today) return { label: "⏰ Aujourd'hui", color: "#D98548", urgent: true };
+  return { label: "Suivi prévu le " + dateStr, color: "#5C6B6D", urgent: false };
+}
 
 var STATUT_COLOR = { "Disponible": "#14555E", "Réservé": "#D98548", "Vendu": "#5C6B6D", "Loué": "#5C6B6D", "Nouveau": "#D98548", "En négociation": "#14555E", "Conclu": "#5C6B6D" };
 
@@ -68,7 +82,8 @@ function badge(text) {
   return '<span class="badge" style="background:' + (STATUT_COLOR[text] || "#5C6B6D") + '">' + text + '</span>';
 }
 
-function showAddBien() { addingBien = true; render(); }
+function showAddBien() { addingBien = true; editBienIndex = null; render(); }
+function showEditBien(i) { addingBien = true; editBienIndex = i; render(); }
 function saveBien() {
   var b = {
     type: document.getElementById("b_type").value,
@@ -79,59 +94,101 @@ function saveBien() {
     statut: document.getElementById("b_statut").value
   };
   if (!b.quartier) return;
-  biens.unshift(b);
-  addingBien = false;
+  if (editBienIndex === null) { biens.unshift(b); }
+  else { biens[editBienIndex] = b; }
+  addingBien = false; editBienIndex = null;
   render();
 }
-function showAddClient() { addingClient = true; render(); }
+function deleteBien() {
+  if (editBienIndex === null) return;
+  biens.splice(editBienIndex, 1);
+  addingBien = false; editBienIndex = null;
+  render();
+}
+
+function showAddClient() { addingClient = true; editClientIndex = null; render(); }
+function showEditClient(i) { addingClient = true; editClientIndex = i; render(); }
 function saveClient() {
   var c = {
     nom: document.getElementById("c_nom").value,
     tel: document.getElementById("c_tel").value,
     recherche: document.getElementById("c_recherche").value,
     budget: document.getElementById("c_budget").value,
-    statut: document.getElementById("c_statut").value
+    statut: document.getElementById("c_statut").value,
+    suivi: document.getElementById("c_suivi").value
   };
   if (!c.nom) return;
-  clients.unshift(c);
-  addingClient = false;
+  if (editClientIndex === null) { clients.unshift(c); }
+  else { clients[editClientIndex] = c; }
+  addingClient = false; editClientIndex = null;
   render();
 }
+function deleteClient() {
+  if (editClientIndex === null) return;
+  clients.splice(editClientIndex, 1);
+  addingClient = false; editClientIndex = null;
+  render();
+}
+
+function opt(current, value) { return current === value ? " selected" : ""; }
 
 function render() {
   var el = document.getElementById("screen");
   if (tab === "biens") {
     if (addingBien) {
+      var b = editBienIndex !== null ? biens[editBienIndex] : { type: "Villa", quartier: "", transaction: "Vente", prix: "", surface: "", statut: "Disponible" };
       el.innerHTML =
-        '<div class="field"><label>Type de bien</label><select id="b_type"><option>Terrain</option><option>Maison</option><option selected>Villa</option><option>Appartement</option><option>Studio/Chambre</option><option>Local commercial</option></select></div>' +
-        '<div class="field"><label>Quartier</label><input id="b_quartier" placeholder="ex. Sotuba"></div>' +
-        '<div class="field"><label>Transaction</label><select id="b_transaction"><option>Vente</option><option>Location</option></select></div>' +
-        '<div class="field"><label>Prix (FCFA)</label><input id="b_prix" placeholder="ex. 85 000 000"></div>' +
-        '<div class="field"><label>Surface (m²)</label><input id="b_surface" placeholder="ex. 300"></div>' +
-        '<div class="field"><label>Statut</label><select id="b_statut"><option>Disponible</option><option>Réservé</option><option>Vendu</option><option>Loué</option></select></div>' +
-        '<button class="btn-primary" onclick="saveBien()">Enregistrer le bien</button>' +
-        '<button onclick="addingBien=false;render()" style="width:100%;background:none;border:none;color:var(--gray);padding:8px">Annuler</button>';
+        '<div class="field"><label>Type de bien</label><select id="b_type">' +
+          ["Terrain","Maison","Villa","Appartement","Studio/Chambre","Local commercial"].map(function(t){ return '<option' + opt(b.type,t) + '>' + t + '</option>'; }).join("") +
+        '</select></div>' +
+        '<div class="field"><label>Quartier</label><input id="b_quartier" value="' + b.quartier + '" placeholder="ex. Sotuba"></div>' +
+        '<div class="field"><label>Transaction</label><select id="b_transaction">' +
+          ["Vente","Location"].map(function(t){ return '<option' + opt(b.transaction,t) + '>' + t + '</option>'; }).join("") +
+        '</select></div>' +
+        '<div class="field"><label>Prix (FCFA)</label><input id="b_prix" value="' + b.prix + '" placeholder="ex. 85 000 000"></div>' +
+        '<div class="field"><label>Surface (m²)</label><input id="b_surface" value="' + b.surface + '" placeholder="ex. 300"></div>' +
+        '<div class="field"><label>Statut</label><select id="b_statut">' +
+          ["Disponible","Réservé","Vendu","Loué"].map(function(t){ return '<option' + opt(b.statut,t) + '>' + t + '</option>'; }).join("") +
+        '</select></div>' +
+        '<button class="btn-primary" onclick="saveBien()">' + (editBienIndex !== null ? "Enregistrer les modifications" : "Enregistrer le bien") + '</button>' +
+        (editBienIndex !== null ? '<button class="btn-primary" style="background:#C0392B" onclick="deleteBien()">Supprimer ce bien</button>' : '') +
+        '<button onclick="addingBien=false;editBienIndex=null;render()" style="width:100%;background:none;border:none;color:var(--gray);padding:8px">Annuler</button>';
       return;
     }
     el.innerHTML = '<button class="btn-primary" onclick="showAddBien()">+ Ajouter un bien</button>' +
-      biens.map(function(b) {
-        return '<div class="card"><div class="row"><div class="name">' + b.type + ' — ' + b.quartier + '</div>' + badge(b.statut) + '</div><div class="sub">' + b.transaction + ' · ' + b.surface + ' m²</div><div class="price">' + b.prix + ' FCFA</div></div>';
+      '<div style="font-size:11.5px;color:var(--gray);margin-bottom:10px">Touchez une carte pour la modifier (statut, prix...) ou la supprimer.</div>' +
+      biens.map(function(b, i) {
+        return '<div class="card" style="cursor:pointer" onclick="showEditBien(' + i + ')"><div class="row"><div class="name">' + b.type + ' — ' + b.quartier + '</div>' + badge(b.statut) + '</div><div class="sub">' + b.transaction + ' · ' + b.surface + ' m²</div><div class="price">' + b.prix + ' FCFA</div></div>';
       }).join("");
   } else {
     if (addingClient) {
+      var c = editClientIndex !== null ? clients[editClientIndex] : { nom: "", tel: "", recherche: "Location", budget: "", statut: "Nouveau", suivi: "" };
       el.innerHTML =
-        '<div class="field"><label>Nom du client</label><input id="c_nom" placeholder="ex. Aminata Diarra"></div>' +
-        '<div class="field"><label>Téléphone / WhatsApp</label><input id="c_tel" placeholder="+223 XX XX XX XX"></div>' +
-        '<div class="field"><label>Recherche</label><select id="c_recherche"><option>Location</option><option>Achat</option></select></div>' +
-        '<div class="field"><label>Budget</label><input id="c_budget" placeholder="ex. 300 000 - 400 000"></div>' +
-        '<div class="field"><label>Statut</label><select id="c_statut"><option>Nouveau</option><option>En négociation</option><option>Conclu</option></select></div>' +
-        '<button class="btn-primary" onclick="saveClient()">Enregistrer le client</button>' +
-        '<button onclick="addingClient=false;render()" style="width:100%;background:none;border:none;color:var(--gray);padding:8px">Annuler</button>';
+        '<div class="field"><label>Nom du client</label><input id="c_nom" value="' + c.nom + '" placeholder="ex. Aminata Diarra"></div>' +
+        '<div class="field"><label>Téléphone / WhatsApp</label><input id="c_tel" value="' + c.tel + '" placeholder="+223 XX XX XX XX"></div>' +
+        '<div class="field"><label>Recherche</label><select id="c_recherche">' +
+          ["Location","Achat"].map(function(t){ return '<option' + opt(c.recherche,t) + '>' + t + '</option>'; }).join("") +
+        '</select></div>' +
+        '<div class="field"><label>Budget</label><input id="c_budget" value="' + c.budget + '" placeholder="ex. 300 000 - 400 000"></div>' +
+        '<div class="field"><label>Statut</label><select id="c_statut">' +
+          ["Nouveau","En négociation","Conclu"].map(function(t){ return '<option' + opt(c.statut,t) + '>' + t + '</option>'; }).join("") +
+        '</select></div>' +
+        '<div class="field"><label>Prochain suivi (optionnel)</label><input type="date" id="c_suivi" value="' + c.suivi + '"></div>' +
+        '<button class="btn-primary" onclick="saveClient()">' + (editClientIndex !== null ? "Enregistrer les modifications" : "Enregistrer le client") + '</button>' +
+        (editClientIndex !== null ? '<button class="btn-primary" style="background:#C0392B" onclick="deleteClient()">Supprimer ce client</button>' : '') +
+        '<button onclick="addingClient=false;editClientIndex=null;render()" style="width:100%;background:none;border:none;color:var(--gray);padding:8px">Annuler</button>';
       return;
     }
+    var order = clients.map(function(c, i) { return i; }).sort(function(i1, i2) {
+      var s1 = clients[i1].suivi || "9999", s2 = clients[i2].suivi || "9999";
+      return s1 < s2 ? -1 : s1 > s2 ? 1 : 0;
+    });
     el.innerHTML = '<button class="btn-primary" onclick="showAddClient()">+ Ajouter un client</button>' +
-      clients.map(function(c) {
-        return '<div class="card"><div class="row"><div class="name">' + c.nom + '</div>' + badge(c.statut) + '</div><div class="sub">' + c.tel + '</div><div class="sub" style="margin-top:4px">' + c.recherche + ' · <span style="font-family:monospace;color:var(--teal);font-weight:700">' + c.budget + '</span></div></div>';
+      '<div style="font-size:11.5px;color:var(--gray);margin-bottom:10px">Les clients à recontacter en priorité remontent automatiquement en haut. Touchez une carte pour la modifier ou la supprimer.</div>' +
+      order.map(function(i) {
+        var c = clients[i];
+        var si = suiviInfo(c.suivi);
+        return '<div class="card" style="cursor:pointer' + (si.urgent ? ';border-color:' + si.color + ';border-width:1.5px' : '') + '" onclick="showEditClient(' + i + ')"><div class="row"><div class="name">' + c.nom + '</div>' + badge(c.statut) + '</div><div class="sub">' + c.tel + '</div><div class="sub" style="margin-top:4px">' + c.recherche + ' · <span style="font-family:monospace;color:var(--teal);font-weight:700">' + c.budget + '</span></div>' + (si.label ? '<div style="margin-top:7px;font-size:12px;font-weight:600;color:' + si.color + '">' + si.label + '</div>' : '') + '</div>';
       }).join("");
   }
 }
