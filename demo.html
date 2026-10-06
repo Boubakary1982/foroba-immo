@@ -6,14 +6,14 @@
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 <meta name="theme-color" content="#14555E" />
 <style>
-  :root { --teal: #14555E; --terracotta: #D98548; --dark: #1F2A2C; --gray: #5C6B6D; }
+  :root { --teal: #14555E; --terracotta: #D98548; --dark: #1F2A2C; --gray: #5C6B6D; --lt-teal: #E7EEEE; --red: #C0392B; --green: #2E7D4F; }
   * { box-sizing: border-box; margin: 0; padding: 0; }
   body { font-family: 'Segoe UI', Arial, sans-serif; background: #F7F7F5; color: var(--dark); }
   .topbar { background: var(--teal); color: #fff; padding: 18px 20px 14px; position: sticky; top: 0; }
   .topbar .eyebrow { font-family: 'Courier New', monospace; font-size: 10px; letter-spacing: 2px; color: #F2D9BE; margin-bottom: 2px; }
   .topbar .title { font-family: Georgia, serif; font-size: 20px; }
   .tabs { display: flex; background: #fff; border-bottom: 1px solid #E3E3E3; }
-  .tab { flex: 1; background: none; border: none; padding: 12px 4px; font-size: 13px; font-weight: 500; color: var(--gray); cursor: pointer; border-bottom: 2px solid transparent; }
+  .tab { flex: 1; background: none; border: none; padding: 11px 2px; font-size: 12px; font-weight: 500; color: var(--gray); cursor: pointer; border-bottom: 2px solid transparent; }
   .tab.active { color: var(--teal); font-weight: 700; border-bottom-color: var(--teal); }
   .screen { padding: 18px; }
   .btn-primary { width: 100%; font-size: 15px; font-weight: 600; background: var(--teal); color: #fff; border: none; border-radius: 9px; padding: 14px; cursor: pointer; margin-bottom: 16px; }
@@ -27,6 +27,15 @@
   .field label { display: block; font-size: 12.5px; color: var(--gray); font-weight: 600; margin-bottom: 5px; }
   .field input, .field select { width: 100%; padding: 11px 12px; border-radius: 8px; border: 1px solid #D8D8D8; font-size: 14.5px; }
   .footer-note { padding: 10px; text-align: center; font-size: 10.5px; color: var(--gray); border-top: 1px solid #E3E3E3; background: #fff; }
+  .subnav { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 16px; }
+  .subnav button { padding: 7px 12px; border-radius: 20px; font-size: 11.5px; border: 1px solid var(--teal); background: #fff; color: var(--teal); cursor: pointer; }
+  .subnav button.active { background: var(--teal); color: #fff; }
+  .check-row { display: flex; align-items: center; gap: 10px; font-size: 14px; margin-bottom: 12px; cursor: pointer; }
+  .check-row input { width: 18px; height: 18px; }
+  .score-row { border-top: 1px solid #E3E3E3; margin-top: 4px; padding-top: 14px; display: flex; align-items: center; justify-content: space-between; }
+  .score-val { font-size: 22px; font-weight: 700; }
+  .pill { margin-top: 8px; font-size: 12.5px; padding: 6px 12px; border-radius: 8px; display: inline-block; font-weight: 600; }
+  .roadmap-note { font-size: 11px; color: var(--terracotta); font-weight: 600; margin-bottom: 12px; }
 </style>
 </head>
 <body>
@@ -37,6 +46,7 @@
 <div class="tabs">
   <button class="tab active" id="tabBiens" onclick="setTab('biens')">Gestion des biens</button>
   <button class="tab" id="tabClients" onclick="setTab('clients')">CRM — Clients</button>
+  <button class="tab" id="tabRoadmap" onclick="setTab('roadmap')">Feuille de route</button>
 </div>
 <div class="screen" id="screen"></div>
 <div class="footer-note">Démo pilote — données locales à cet appareil, non sauvegardées</div>
@@ -47,6 +57,7 @@ var addingBien = false;
 var addingClient = false;
 var editBienIndex = null;
 var editClientIndex = null;
+var roadmapTab = "foncier";
 
 var biens = [
   { type: "Villa", quartier: "Sotuba", transaction: "Vente", prix: "85 000 000", surface: "300", statut: "Disponible" },
@@ -75,65 +86,215 @@ function setTab(t) {
   tab = t; addingBien = false; addingClient = false;
   document.getElementById("tabBiens").className = "tab" + (t === "biens" ? " active" : "");
   document.getElementById("tabClients").className = "tab" + (t === "clients" ? " active" : "");
-  document.getElementById("screenTitle").innerText = t === "biens" ? "Gestion des biens" : "CRM — Clients";
+  document.getElementById("tabRoadmap").className = "tab" + (t === "roadmap" ? " active" : "");
+  document.getElementById("screenTitle").innerText = t === "biens" ? "Gestion des biens" : t === "clients" ? "CRM — Clients" : "Feuille de route";
   render();
 }
 function badge(text) {
   return '<span class="badge" style="background:' + (STATUT_COLOR[text] || "#5C6B6D") + '">' + text + '</span>';
 }
+function opt(current, value) { return current === value ? " selected" : ""; }
 
 function showAddBien() { addingBien = true; editBienIndex = null; render(); }
 function showEditBien(i) { addingBien = true; editBienIndex = i; render(); }
 function saveBien() {
   var b = {
-    type: document.getElementById("b_type").value,
-    quartier: document.getElementById("b_quartier").value,
-    transaction: document.getElementById("b_transaction").value,
-    prix: document.getElementById("b_prix").value,
-    surface: document.getElementById("b_surface").value,
-    statut: document.getElementById("b_statut").value
+    type: document.getElementById("b_type").value, quartier: document.getElementById("b_quartier").value,
+    transaction: document.getElementById("b_transaction").value, prix: document.getElementById("b_prix").value,
+    surface: document.getElementById("b_surface").value, statut: document.getElementById("b_statut").value
   };
   if (!b.quartier) return;
-  if (editBienIndex === null) { biens.unshift(b); }
-  else { biens[editBienIndex] = b; }
-  addingBien = false; editBienIndex = null;
-  render();
+  if (editBienIndex === null) { biens.unshift(b); } else { biens[editBienIndex] = b; }
+  addingBien = false; editBienIndex = null; render();
 }
 function deleteBien() {
   if (editBienIndex === null) return;
-  biens.splice(editBienIndex, 1);
-  addingBien = false; editBienIndex = null;
-  render();
+  biens.splice(editBienIndex, 1); addingBien = false; editBienIndex = null; render();
 }
 
 function showAddClient() { addingClient = true; editClientIndex = null; render(); }
 function showEditClient(i) { addingClient = true; editClientIndex = i; render(); }
 function saveClient() {
   var c = {
-    nom: document.getElementById("c_nom").value,
-    tel: document.getElementById("c_tel").value,
-    recherche: document.getElementById("c_recherche").value,
-    budget: document.getElementById("c_budget").value,
-    statut: document.getElementById("c_statut").value,
-    suivi: document.getElementById("c_suivi").value
+    nom: document.getElementById("c_nom").value, tel: document.getElementById("c_tel").value,
+    recherche: document.getElementById("c_recherche").value, budget: document.getElementById("c_budget").value,
+    statut: document.getElementById("c_statut").value, suivi: document.getElementById("c_suivi").value
   };
   if (!c.nom) return;
-  if (editClientIndex === null) { clients.unshift(c); }
-  else { clients[editClientIndex] = c; }
-  addingClient = false; editClientIndex = null;
-  render();
+  if (editClientIndex === null) { clients.unshift(c); } else { clients[editClientIndex] = c; }
+  addingClient = false; editClientIndex = null; render();
 }
 function deleteClient() {
   if (editClientIndex === null) return;
-  clients.splice(editClientIndex, 1);
-  addingClient = false; editClientIndex = null;
-  render();
+  clients.splice(editClientIndex, 1); addingClient = false; editClientIndex = null; render();
 }
 
-function opt(current, value) { return current === value ? " selected" : ""; }
+// ---------- Feuille de route : aperçus des 5 fonctionnalités à venir ----------
+var ROADMAP_ITEMS = [
+  { id: "foncier", label: "FoncierScore" },
+  { id: "immo", label: "IMMOScore" },
+  { id: "contrat", label: "Contrats" },
+  { id: "compta", label: "Comptabilité" },
+  { id: "diaspora", label: "Diaspora" }
+];
+function setRoadmapTab(id) { roadmapTab = id; render(); }
+
+function statCard(label, val) {
+  return '<div style="background:#F7F7F5;border-radius:8px;padding:12px"><div style="font-size:12px;color:var(--gray);margin-bottom:4px">' + label + '</div><div style="font-size:17px;font-weight:700">' + val + '</div></div>';
+}
+
+function renderFoncier() {
+  var levels = [
+    ["Niveau 1 — Notaire", ["Acte authentique vérifié", "Identité du vendeur confirmée"]],
+    ["Niveau 2 — Domaines et Cadastre", ["Titre foncier existant au registre", "Aucune hypothèque ou saisie en cours"]],
+    ["Niveau 3 — Géomètre agréé", ["Bornage réalisé", "Superficie conforme au titre"]]
+  ];
+  var html = levels.map(function(l) {
+    return '<div class="card"><div style="font-weight:600;font-size:14px;margin-bottom:10px">' + l[0] + '</div>' +
+      l[1].map(function(c) { return '<label class="check-row"><input type="checkbox" class="fchk" onchange="updateFoncier()"> ' + c + '</label>'; }).join("") +
+    '</div>';
+  }).join("");
+  return html + '<div class="card">' +
+    '<div class="score-row" style="border-top:none;margin-top:0;padding-top:0"><span class="sub">Score global</span><span class="score-val" id="fscore">0/6</span></div>' +
+    '<div style="height:6px;background:#F0F0ED;border-radius:4px;overflow:hidden;margin:10px 0 12px"><div id="fbar" style="height:100%;width:0%;background:var(--teal)"></div></div>' +
+    '<div class="pill" id="flabel" style="background:#FBEAEA;color:#C0392B">Vérification non commencée</div>' +
+  '</div>';
+}
+function updateFoncier() {
+  var boxes = document.querySelectorAll(".fchk");
+  var n = Array.prototype.filter.call(boxes, function(b){ return b.checked; }).length;
+  document.getElementById("fscore").innerText = n + "/6";
+  document.getElementById("fbar").style.width = (n/6*100) + "%";
+  var el = document.getElementById("flabel");
+  var pct = n/6;
+  var s = pct === 0 ? ["Vérification non commencée","#FBEAEA","#C0392B"]
+    : pct < 0.5 ? ["Vérification en cours — risque élevé","#FBEAEA","#C0392B"]
+    : pct < 1 ? ["Vérification avancée — risque modéré","#FBF0E6","#D98548"]
+    : ["Entièrement vérifié — titre sécurisé","#E8F3EC","#2E7D4F"];
+  el.innerText = s[0]; el.style.background = s[1]; el.style.color = s[2];
+}
+
+function renderImmo() {
+  return '<div class="card">' +
+      '<div class="field"><label>Nom du candidat</label><input id="inom" placeholder="Fatoumata Koné"></div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
+        '<div class="field"><label>Profession</label><input id="iprof" placeholder="Fonctionnaire"></div>' +
+        '<div class="field"><label>Revenu mensuel</label><input type="number" id="irevenu" placeholder="300000" oninput="updateImmo()"></div>' +
+      '</div>' +
+      '<label class="check-row"><input type="checkbox" id="igarant" onchange="updateImmo()"> A un garant solvable</label>' +
+      '<label class="check-row"><input type="checkbox" id="iref" onchange="updateImmo()"> Référence d\'un précédent bailleur</label>' +
+      '<label class="check-row" style="margin-bottom:0"><input type="checkbox" id="iretard" onchange="updateImmo()"> Historique de retard de paiement</label>' +
+    '</div><div class="card">' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:14px">' + statCard("Revenu", '<span id="scoreRevenu">—</span>') + statCard("Garanties", '<span id="scoreGarantie">—</span>') + '</div>' +
+      '<div class="score-row"><span class="sub">IMMOScore final</span><span class="score-val" id="iscore">—</span></div>' +
+    '</div>';
+}
+function updateImmo() {
+  var revenu = Number(document.getElementById("irevenu").value) || 0;
+  var garant = document.getElementById("igarant").checked;
+  var ref = document.getElementById("iref").checked;
+  var retard = document.getElementById("iretard").checked;
+  document.getElementById("scoreRevenu").innerText = revenu >= 300000 ? "Élevé" : revenu >= 150000 ? "Moyen" : revenu > 0 ? "Faible" : "—";
+  document.getElementById("scoreGarantie").innerText = (garant && ref) ? "Solide" : (garant || ref) ? "Partielle" : "Absente";
+  var score = 40;
+  if (revenu >= 300000) score += 25; else if (revenu >= 150000) score += 12;
+  if (garant) score += 15;
+  if (ref) score += 15;
+  if (retard) score -= 25;
+  score = Math.max(0, Math.min(100, score));
+  document.getElementById("iscore").innerText = revenu > 0 ? score + "/100" : "—";
+}
+
+function renderContrat() {
+  return '<div class="card">' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
+        '<div class="field"><label>Bailleur</label><input id="cbailleur" placeholder="Nom" oninput="updateContrat()"></div>' +
+        '<div class="field"><label>Locataire</label><input id="clocataire" placeholder="Nom" oninput="updateContrat()"></div>' +
+      '</div>' +
+      '<div class="field"><label>Bien concerné</label><input id="cbien" placeholder="Villa 3 pièces, Sotuba" oninput="updateContrat()"></div>' +
+      '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:0">' +
+        '<div class="field" style="margin-bottom:0"><label>Loyer mensuel</label><input id="cmontant" placeholder="380000" oninput="updateContrat()"></div>' +
+        '<div class="field" style="margin-bottom:0"><label>Durée</label><select id="cduree" onchange="updateContrat()"><option>12 mois</option><option>24 mois</option><option>36 mois</option></select></div>' +
+      '</div>' +
+    '</div><div class="card">' +
+      '<div style="font-size:11px;color:var(--gray);margin-bottom:10px">APERÇU GÉNÉRÉ AUTOMATIQUEMENT</div>' +
+      '<div id="cpreview" style="font-size:13px;line-height:1.7"></div>' +
+      '<button class="btn-primary" style="margin-top:14px;margin-bottom:0;opacity:0.5" disabled>Envoyer pour signature électronique</button>' +
+    '</div>';
+}
+function updateContrat() {
+  var bailleur = document.getElementById("cbailleur").value || "[Bailleur]";
+  var locataire = document.getElementById("clocataire").value || "[Locataire]";
+  var bien = document.getElementById("cbien").value || "[bien]";
+  var montant = document.getElementById("cmontant").value || "[montant]";
+  var duree = document.getElementById("cduree").value;
+  document.getElementById("cpreview").innerHTML =
+    "<strong>Contrat de bail — entre les soussignés</strong><br>" + bailleur + " (bailleur) et " + locataire + " (locataire)<br><br>" +
+    "<strong>Article 1 — Objet</strong><br>Location du bien suivant : " + bien + "<br><br>" +
+    "<strong>Article 2 — Durée</strong><br>" + duree + ", renouvelable par tacite reconduction<br><br>" +
+    "<strong>Article 3 — Loyer</strong><br>" + montant + " FCFA par mois, payable avant le 5 de chaque mois";
+}
+
+var moisAnnee = ["Jan","Fév","Mar","Avr","Mai","Jun","Jul","Aoû","Sep","Oct","Nov","Déc"];
+var comptaState = [true,true,true,true,true,true,true,false,false,false,false,false];
+var loyerMensuel = 380000;
+function renderCompta() {
+  var paye = comptaState.filter(function(x){return x;}).length;
+  return '<div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:10px">' +
+      statCard("Encaissé 2026", (paye*loyerMensuel).toLocaleString("fr-FR") + " F") + statCard("Impayé 2026", ((12-paye)*loyerMensuel).toLocaleString("fr-FR") + " F") +
+    '</div><div class="card"><div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px">' +
+      moisAnnee.map(function(m, i) { return '<button onclick="toggleCompta(' + i + ')" id="cm' + i + '" style="padding:10px 4px;font-size:11.5px;border:none;border-radius:6px;cursor:pointer">' + m + '</button>'; }).join("") +
+    '</div></div>';
+}
+function toggleCompta(i) { comptaState[i] = !comptaState[i]; render(); }
+function paintCompta() {
+  comptaState.forEach(function(paid, i) {
+    var b = document.getElementById("cm" + i);
+    if (!b) return;
+    b.style.background = paid ? "#E8F3EC" : "#FBEAEA";
+    b.style.color = paid ? "#2E7D4F" : "#C0392B";
+  });
+}
+
+var allProps = [["Villa","Sotuba","Vente","85 000 000 FCFA"],["Appartement","ACI 2000","Location","380 000 F/mois"],["Terrain","Yirimadio","Vente","9 000 000 FCFA"],["Villa","Badalabougou","Location","550 000 F/mois"]];
+var diasporaFilter = "Tous";
+var selectedProp = null;
+function renderDiaspora() {
+  var filters = ["Tous","Vente","Location"];
+  if (selectedProp !== null) {
+    var p = allProps[selectedProp];
+    return '<button onclick="selectedProp=null;render()" style="background:none;border:none;color:var(--teal);font-size:13px;margin-bottom:12px;cursor:pointer">← Retour</button>' +
+      '<div class="card"><div class="name" style="font-size:17px">' + p[0] + ' — ' + p[1] + '</div><div class="sub" style="margin-bottom:8px">' + p[2] + '</div>' +
+      '<div class="price" style="font-size:19px;margin-bottom:16px">' + p[3] + '</div>' +
+      '<a href="https://wa.me/22382683541?text=Je%20veux%20en%20savoir%20plus%20sur%20ce%20bien%20%C3%A0%20' + encodeURIComponent(p[1]) + '" target="_blank" class="btn-primary" style="display:block;text-align:center;text-decoration:none;margin-bottom:0">Contacter l\'agence</a></div>';
+  }
+  var filtered = diasporaFilter === "Tous" ? allProps : allProps.filter(function(p){ return p[2] === diasporaFilter; });
+  return '<div style="display:flex;gap:8px;margin-bottom:14px">' +
+      filters.map(function(f) { return '<button onclick="diasporaFilter=\'' + f + '\';render()" style="padding:6px 14px;border-radius:20px;font-size:12px;border:1px solid var(--teal);background:' + (f===diasporaFilter?"var(--teal)":"#fff") + ';color:' + (f===diasporaFilter?"#fff":"var(--teal)") + ';cursor:pointer">' + f + '</button>'; }).join("") +
+    '</div><div style="display:grid;grid-template-columns:1fr 1fr;gap:10px">' +
+      filtered.map(function(p) {
+        var idx = allProps.indexOf(p);
+        return '<div class="card" style="margin-bottom:0;cursor:pointer" onclick="selectedProp=' + idx + ';render()"><div class="name" style="font-size:14px">' + p[0] + '</div><div class="sub">' + p[1] + '</div><div class="price" style="font-size:13px">' + p[3] + '</div></div>';
+      }).join("") +
+    '</div>';
+}
+
+function renderRoadmapScreen() {
+  var subnav = '<div class="subnav">' + ROADMAP_ITEMS.map(function(it) {
+    return '<button class="' + (it.id === roadmapTab ? "active" : "") + '" onclick="setRoadmapTab(\'' + it.id + '\')">' + it.label + '</button>';
+  }).join("") + '</div>';
+  var body = roadmapTab === "foncier" ? renderFoncier() : roadmapTab === "immo" ? renderImmo() : roadmapTab === "contrat" ? renderContrat() : roadmapTab === "compta" ? renderCompta() : renderDiaspora();
+  return subnav + body;
+}
 
 function render() {
   var el = document.getElementById("screen");
+  if (tab === "roadmap") {
+    el.innerHTML = renderRoadmapScreen();
+    if (roadmapTab === "foncier") updateFoncier();
+    if (roadmapTab === "compta") paintCompta();
+    return;
+  }
   if (tab === "biens") {
     if (addingBien) {
       var b = editBienIndex !== null ? biens[editBienIndex] : { type: "Villa", quartier: "", transaction: "Vente", prix: "", surface: "", statut: "Disponible" };
@@ -146,53 +307,4 @@ function render() {
           ["Vente","Location"].map(function(t){ return '<option' + opt(b.transaction,t) + '>' + t + '</option>'; }).join("") +
         '</select></div>' +
         '<div class="field"><label>Prix (FCFA)</label><input id="b_prix" value="' + b.prix + '" placeholder="ex. 85 000 000"></div>' +
-        '<div class="field"><label>Surface (m²)</label><input id="b_surface" value="' + b.surface + '" placeholder="ex. 300"></div>' +
-        '<div class="field"><label>Statut</label><select id="b_statut">' +
-          ["Disponible","Réservé","Vendu","Loué"].map(function(t){ return '<option' + opt(b.statut,t) + '>' + t + '</option>'; }).join("") +
-        '</select></div>' +
-        '<button class="btn-primary" onclick="saveBien()">' + (editBienIndex !== null ? "Enregistrer les modifications" : "Enregistrer le bien") + '</button>' +
-        (editBienIndex !== null ? '<button class="btn-primary" style="background:#C0392B" onclick="deleteBien()">Supprimer ce bien</button>' : '') +
-        '<button onclick="addingBien=false;editBienIndex=null;render()" style="width:100%;background:none;border:none;color:var(--gray);padding:8px">Annuler</button>';
-      return;
-    }
-    el.innerHTML = '<button class="btn-primary" onclick="showAddBien()">+ Ajouter un bien</button>' +
-      '<div style="font-size:11.5px;color:var(--gray);margin-bottom:10px">Touchez une carte pour la modifier (statut, prix...) ou la supprimer.</div>' +
-      biens.map(function(b, i) {
-        return '<div class="card" style="cursor:pointer" onclick="showEditBien(' + i + ')"><div class="row"><div class="name">' + b.type + ' — ' + b.quartier + '</div>' + badge(b.statut) + '</div><div class="sub">' + b.transaction + ' · ' + b.surface + ' m²</div><div class="price">' + b.prix + ' FCFA</div></div>';
-      }).join("");
-  } else {
-    if (addingClient) {
-      var c = editClientIndex !== null ? clients[editClientIndex] : { nom: "", tel: "", recherche: "Location", budget: "", statut: "Nouveau", suivi: "" };
-      el.innerHTML =
-        '<div class="field"><label>Nom du client</label><input id="c_nom" value="' + c.nom + '" placeholder="ex. Aminata Diarra"></div>' +
-        '<div class="field"><label>Téléphone / WhatsApp</label><input id="c_tel" value="' + c.tel + '" placeholder="+223 XX XX XX XX"></div>' +
-        '<div class="field"><label>Recherche</label><select id="c_recherche">' +
-          ["Location","Achat"].map(function(t){ return '<option' + opt(c.recherche,t) + '>' + t + '</option>'; }).join("") +
-        '</select></div>' +
-        '<div class="field"><label>Budget</label><input id="c_budget" value="' + c.budget + '" placeholder="ex. 300 000 - 400 000"></div>' +
-        '<div class="field"><label>Statut</label><select id="c_statut">' +
-          ["Nouveau","En négociation","Conclu"].map(function(t){ return '<option' + opt(c.statut,t) + '>' + t + '</option>'; }).join("") +
-        '</select></div>' +
-        '<div class="field"><label>Prochain suivi (optionnel)</label><input type="date" id="c_suivi" value="' + c.suivi + '"></div>' +
-        '<button class="btn-primary" onclick="saveClient()">' + (editClientIndex !== null ? "Enregistrer les modifications" : "Enregistrer le client") + '</button>' +
-        (editClientIndex !== null ? '<button class="btn-primary" style="background:#C0392B" onclick="deleteClient()">Supprimer ce client</button>' : '') +
-        '<button onclick="addingClient=false;editClientIndex=null;render()" style="width:100%;background:none;border:none;color:var(--gray);padding:8px">Annuler</button>';
-      return;
-    }
-    var order = clients.map(function(c, i) { return i; }).sort(function(i1, i2) {
-      var s1 = clients[i1].suivi || "9999", s2 = clients[i2].suivi || "9999";
-      return s1 < s2 ? -1 : s1 > s2 ? 1 : 0;
-    });
-    el.innerHTML = '<button class="btn-primary" onclick="showAddClient()">+ Ajouter un client</button>' +
-      '<div style="font-size:11.5px;color:var(--gray);margin-bottom:10px">Les clients à recontacter en priorité remontent automatiquement en haut. Touchez une carte pour la modifier ou la supprimer.</div>' +
-      order.map(function(i) {
-        var c = clients[i];
-        var si = suiviInfo(c.suivi);
-        return '<div class="card" style="cursor:pointer' + (si.urgent ? ';border-color:' + si.color + ';border-width:1.5px' : '') + '" onclick="showEditClient(' + i + ')"><div class="row"><div class="name">' + c.nom + '</div>' + badge(c.statut) + '</div><div class="sub">' + c.tel + '</div><div class="sub" style="margin-top:4px">' + c.recherche + ' · <span style="font-family:monospace;color:var(--teal);font-weight:700">' + c.budget + '</span></div>' + (si.label ? '<div style="margin-top:7px;font-size:12px;font-weight:600;color:' + si.color + '">' + si.label + '</div>' : '') + '</div>';
-      }).join("");
-  }
-}
-render();
-</script>
-</body>
-</html>
+        '
